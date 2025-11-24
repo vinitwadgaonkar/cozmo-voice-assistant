@@ -1,0 +1,23 @@
+2025-11-24 07:27:09.875 | INFO     | pipecat:<module>:14 - ᓚᘏᗢ Pipecat 0.0.95 (Python 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:51:49) [Clang 16.0.6 ]) ᓚᘏᗢ
+/Users/vinitwadgaonkar/cozmo/test_deepgram_stt.py:20: DeprecationWarning: Module `pipecat.services.deepgram` is deprecated, use `pipecat.services.deepgram.[stt,tts]` instead.
+  from pipecat.services.deepgram import DeepgramSTTService
+2025-11-24 07:27:12.069 | INFO     | __main__:<module>:221 - 🎤 Deepgram STT Standalone Test
+2025-11-24 07:27:12.069 | INFO     | __main__:<module>:222 -    This test checks connection and basic functionality.
+
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:92 - ======================================================================
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:93 - 🧪 TESTING DEEPGRAM STT INDEPENDENTLY
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:94 - ======================================================================
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:96 - ✅ Deepgram API Key: 0063222e33...43a3
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:97 - 🎧 Sample: samples/english_01.wav | Language: en-US | Model: nova-2
+2025-11-24 07:27:12.070 | INFO     | __main__:test_deepgram:100 - 🔧 Creating Deepgram STT service...
+2025-11-24 07:27:12.071 | INFO     | __main__:test_deepgram:117 - ✅ Deepgram STT service created
+2025-11-24 07:27:12.071 | DEBUG    | pipecat.processors.frame_processor:link:525 - Linking Pipeline#0::Source -> DeepgramSTTService#0
+2025-11-24 07:27:12.071 | DEBUG    | pipecat.processors.frame_processor:link:525 - Linking DeepgramSTTService#0 -> DeepgramTestSink#0
+2025-11-24 07:27:12.071 | DEBUG    | pipecat.processors.frame_processor:link:525 - Linking DeepgramTestSink#0 -> Pipeline#0::Sink
+2025-11-24 07:27:12.071 | DEBUG    | pipecat.processors.frame_processor:link:525 - Linking PipelineTask#0::Source -> Pipeline#0
+2025-11-24 07:27:12.071 | DEBUG    | pipecat.processors.frame_processor:link:525 - Linking Pipeline#0 -> PipelineTask#0::Sink
+2025-11-24 07:27:12.072 | INFO     | __main__:test_deepgram:179 - 🚀 Starting Deepgram STT pipeline...
+2025-11-24 07:27:12.072 | DEBUG    | pipecat.pipeline.runner:run:71 - Runner PipelineRunner#0 started running PipelineTask#0
+2025-11-24 07:27:12.072 | DEBUG    | pipecat.pipeline.task:_wait_for_pipeline_start:602 - PipelineTask#0: Starting. Waiting for StartFrame#0 to reach the end of the pipeline...
+2025-11-24 07:27:12.072 | DEBUG    | pipecat.services.deepgram.stt:_connect:216 - Connecting to Deepgram
+2025-11-24 07:27:12.573 | INFO     | __main__:feed_audio:134 - ▶️  Feeding audio to Deepgram...

@@ -1,0 +1,25 @@
+2025-11-23 23:50:09.261 | INFO     | __main__:test_latency:31 - ======================================================================
+2025-11-23 23:50:09.261 | INFO     | __main__:test_latency:32 - 🧪 AUTONOMOUS LATENCY TEST
+2025-11-23 23:50:09.261 | INFO     | __main__:test_latency:33 - ======================================================================
+2025-11-23 23:50:09.261 | INFO     | __main__:test_latency:50 - 📝 Room: latency-test-1763922009
+2025-11-23 23:50:10.136 | INFO     | __main__:test_latency:59 - ✅ Connected to room
+2025-11-23 23:50:10.136 | INFO     | __main__:test_latency:62 - ⏳ Waiting for agent (15s)...
+2025-11-23 23:50:14.143 | INFO     | __main__:test_latency:69 - ✅ Agent joined: Hindi Agent
+2025-11-23 23:50:16.145 | INFO     | __main__:test_latency:85 - ✅ Entrypoint was called
+2025-11-23 23:50:16.145 | INFO     | __main__:test_latency:90 - 🎤 Publishing test audio...
+2025-11-23 23:50:16.205 | INFO     | __main__:test_latency:96 - ✅ Published audio track: TR_AMYHq5TBD2BQRt
+2025-11-23 23:50:16.205 | INFO     | __main__:test_latency:99 - 📤 Sending test audio (simulating 'namaste')...
+2025-11-23 23:50:16.220 | INFO     | __main__:test_latency:109 - ⏳ Waiting for agent response (10s)...
+2025-11-23 23:50:16.220 | INFO     | __main__:test_latency:120 - ✅ Agent audio track detected!
+2025-11-23 23:50:16.220 | INFO     | __main__:test_latency:123 - ⏱️  Response latency: 0ms
+2025-11-23 23:50:16.221 | INFO     | __main__:test_latency:139 - ======================================================================
+2025-11-23 23:50:16.221 | INFO     | __main__:test_latency:140 - 📊 TEST SUMMARY
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:141 - ======================================================================
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:142 -    Agent joined: ✅
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:143 -    Audio published: ✅
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:144 -    Response received: ✅
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:146 -    Latency: 0ms
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:147 -    Target: <150ms
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:148 -    Status: ✅ PASS
+2025-11-23 23:50:16.222 | INFO     | __main__:test_latency:149 - ======================================================================
+2025-11-23 23:50:16.400 | INFO     | __main__:test_latency:162 - 🔌 Disconnected

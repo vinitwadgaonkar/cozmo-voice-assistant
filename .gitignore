@@ -1,0 +1,44 @@
+# Environment variables
+.env
+*.env
+.env.local
+
+# API Keys and secrets
+*_key.txt
+*_secret.txt
+*api_key*
+*secret*
+
+# Logs
+*.log
+agent_debug.log
+*.log.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_output.log
+*.csv
+
+# Samples (large files)
+samples/*.wav
+samples/*.mp3
+

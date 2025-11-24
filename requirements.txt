@@ -1,0 +1,9 @@
+pipecat-ai[livekit, silero, openai, deepgram]
+livekit-agents
+livekit-api
+python-dotenv
+loguru
+websockets
+aiohttp
+pydantic-settings
+cartesia

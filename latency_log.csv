@@ -1,0 +1,1 @@
+turn_id,t_user_eos,t_stt_partial,t_stt_final,t_llm_first_token,t_llm_last_token,t_tts_first_audio,t_playback_start,turn_latency_ms,provider_winner
