@@ -19,9 +19,9 @@ The `ERR_UNKNOWN_URL_SCHEME` error is expected - WebSocket URLs (`wss://`) canno
 ### Method 2: LiveKit Playground
 
 1. Go to: https://agents-playground.livekit.io/
-2. Enter your LiveKit URL: `wss://vinit-oj6871wv.livekit.cloud`
-3. Enter your API Key: `APImtoTstBBLzZP`
-4. Enter your API Secret: `rFjTtlSGbGe1tGzhyEopt44BLQy8Yxx86Z07FGHwe2fB`
+2. Enter your LiveKit URL: `wss://your-livekit-url.livekit.cloud`
+3. Enter your API Key: (get from LiveKit dashboard)
+4. Enter your API Secret: (get from LiveKit dashboard)
 5. Click "Connect"
 6. The agent will join and you can test the voice interaction
 

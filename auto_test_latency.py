@@ -15,9 +15,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LIVEKIT_URL = os.getenv("LIVEKIT_URL", "wss://vinit-oj6871wv.livekit.cloud")
-LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY", "APImtoTstBBLzZP")
-LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET", "rFjTtlSGbGe1tGzhyEopt44BLQy8Yxx86Z07FGHwe2fB")
+LIVEKIT_URL = os.getenv("LIVEKIT_URL", "your_livekit_url_here")
+LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY", "your_livekit_api_key_here")
+LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET", "your_livekit_api_secret_here")
 LOG_FILE = Path("agent_debug.log")
 
 def generate_silence(duration_ms: int, sample_rate: int = 16000) -> bytes:

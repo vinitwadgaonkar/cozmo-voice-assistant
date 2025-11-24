@@ -6,10 +6,11 @@ This uses token-based dispatch - the agent will automatically join when you conn
 import os
 from livekit import api
 
-# Your LiveKit credentials
-LIVEKIT_URL = "wss://vinit-oj6871wv.livekit.cloud"
-LIVEKIT_API_KEY = "APImtoTstBBLzZP"
-LIVEKIT_API_SECRET = "rFjTtlSGbGe1tGzhyEopt44BLQy8Yxx86Z07FGHwe2fB"
+# Your LiveKit credentials (set via environment variables)
+import os
+LIVEKIT_URL = os.getenv("LIVEKIT_URL", "your_livekit_url_here")
+LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY", "your_livekit_api_key_here")
+LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET", "your_livekit_api_secret_here")
 
 # Room name (use any name you want, or leave empty for auto-generated)
 ROOM_NAME = "playground-test"
