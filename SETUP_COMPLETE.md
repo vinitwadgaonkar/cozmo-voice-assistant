@@ -5,8 +5,8 @@
 1. **Replaced Custom Services**: Switched from custom STT/TTS implementations to Pipecat's built-in Sarvam services which are production-ready and properly integrated.
 
 2. **Configuration Updated**: 
-   - LiveKit URL: `wss://vinit-oj6871wv.livekit.cloud`
-   - API Keys configured correctly
+   - LiveKit URL: Set via environment variable
+   - API Keys: Set via environment variables (see setup instructions)
 
 3. **Dependencies Installed**:
    - `sarvamai` package for Sarvam integration
@@ -16,10 +16,10 @@
 
 ### Option 1: Using run.sh
 ```bash
-export LIVEKIT_URL=wss://vinit-oj6871wv.livekit.cloud
-export LIVEKIT_API_KEY=APImtoTstBBLzZP
-export LIVEKIT_API_SECRET=rFjTtlSGbGe1tGzhyEopt44BLQy8Yxx86Z07FGHwe2fB
-export SARVAM_API_KEY=sk_lpduebms_YmNTF2VmiVXXHcwB20VDO2aW
+export LIVEKIT_URL="your_livekit_url_here"
+export LIVEKIT_API_KEY="your_livekit_api_key_here"
+export LIVEKIT_API_SECRET="your_livekit_api_secret_here"
+export SARVAM_API_KEY="your_sarvam_api_key_here"
 export OPENAI_API_KEY="your_openai_key_here"
 ./run.sh
 ```
@@ -27,10 +27,10 @@ export OPENAI_API_KEY="your_openai_key_here"
 ### Option 2: Direct Python
 ```bash
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-export LIVEKIT_URL=wss://vinit-oj6871wv.livekit.cloud
-export LIVEKIT_API_KEY=APImtoTstBBLzZP
-export LIVEKIT_API_SECRET=rFjTtlSGbGe1tGzhyEopt44BLQy8Yxx86Z07FGHwe2fB
-export SARVAM_API_KEY=sk_lpduebms_YmNTF2VmiVXXHcwB20VDO2aW
+export LIVEKIT_URL="your_livekit_url_here"
+export LIVEKIT_API_KEY="your_livekit_api_key_here"
+export LIVEKIT_API_SECRET="your_livekit_api_secret_here"
+export SARVAM_API_KEY="your_sarvam_api_key_here"
 export OPENAI_API_KEY="your_openai_key_here"
 python server/main.py dev
 ```
