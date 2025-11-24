@@ -2,12 +2,16 @@
 .env
 *.env
 .env.local
+.env.*
 
 # API Keys and secrets
 *_key.txt
 *_secret.txt
 *api_key*
 *secret*
+
+# Scripts with API keys (keep structure but remove keys)
+# Note: control_agent.sh and run_optimized.sh should use env vars
 
 # Logs
 *.log
