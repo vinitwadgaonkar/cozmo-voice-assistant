@@ -1,5 +1,9 @@
 # Cozmo - Ultra-Low Latency Hindi Voice Assistant
 
+**GitHub Repository**: https://github.com/vinitwadgaonkar/cozmo-voice-assistant
+
+**Target Latency**: <200ms end-to-end (user stops speaking → first audio frame)
+
 A real-time Hindi voice assistant optimized for **sub-200ms latency** using:
 - **Sarvam STT** for Hindi speech recognition
 - **Groq LLM** (llama-3.1-8b-instant) for fast text generation
