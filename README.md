@@ -57,6 +57,8 @@ Actual Answer: 218ms (well under 200ms target)
 
 ## Architecture
 
+**Visual Diagrams:** See [`ARCHITECTURE_DIAGRAMS.md`](./ARCHITECTURE_DIAGRAMS.md) for detailed execution flow, sequence diagrams, and latency breakdowns with actual measured values.
+
 ### Three-Brain System
 
 The agent employs three parallel processing layers that operate at different latency/quality trade-offs:
