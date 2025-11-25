@@ -29,12 +29,12 @@ The agent employs three parallel processing layers that operate at different lat
 
 **Speculative Brain (L1)**
 - Generates fast, concise responses using GPT-4o-mini
-- Latency: 200-400ms
+- Latency: 150-200ms
 - Purpose: Provide quick initial answers with semantic tagging
 
 **Deep Brain (L2)**
 - Produces extended responses or corrections asynchronously
-- Latency: 500-1000ms
+- Runs in background without blocking L1
 - Purpose: Enhance initial responses with additional context when available
 
 ### Latency Oracle
@@ -200,13 +200,13 @@ VOICE_AGENT_SHADOW_PROBABILITY=0.2  # 20% of requests
 | Brain | Latency | Purpose |
 |-------|---------|---------|
 | L0 Reflex | 0ms | Instant Hindi backchannels ("haan ji, ek second") |
-| L1 Speculative | 150-250ms | Fast initial answers |
-| L2 Deep | 500-800ms | Rich follow-ups (async, doesn't block L1) |
+| L1 Speculative | 150-200ms | Fast initial answers |
+| L2 Deep | Async | Rich follow-ups (runs in background, doesn't block L1) |
 
 With the three-brain system:
 - **Perceived latency:** Sub-100ms (via reflex brain)
-- **Actual answer:** ~173-250ms (via speculative brain)
-- **Enhanced answer:** 500-800ms (via deep brain, optional)
+- **Actual answer:** ~173ms (via speculative brain)
+- **Enhanced answer:** Background processing (via deep brain, optional)
 
 ### Cost Structure
 
