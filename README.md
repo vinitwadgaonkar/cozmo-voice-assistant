@@ -1,189 +1,308 @@
-# Cozmo - Ultra-Low Latency Hindi Voice Assistant
+# Cozmo Voice Agent
 
-**GitHub Repository**: https://github.com/vinitwadgaonkar/cozmo-voice-assistant
+A production-oriented Hindi voice agent implementing a three-brain architecture for low-latency conversational AI.
 
-**Achieved Latency**: **~170ms** end-to-end (user stops speaking → first audio frame)
+## Overview
 
-A real-time Hindi voice assistant achieving **sub-200ms latency** using state-of-the-art streaming token chunking and immediate processing techniques.
+This system provides real-time Hindi/Hinglish voice conversations over LiveKit with optimized latency through a layered response architecture. The implementation uses Pipecat for pipeline orchestration, Sarvam AI for Hindi speech services, and OpenAI for language generation.
 
-## 🎯 Latency Performance
+## Architecture
 
-**Achieved: ~170ms end-to-end latency** (user stops speaking → first audio frame)
+### Three-Brain System
 
-### Performance Breakdown
+The agent employs three parallel processing layers that operate at different latency/quality trade-offs:
 
-```
-STT Processing:        ~60-80ms   (with interim transcripts - early triggering)
-LLM First Token:       ~40-60ms   (streaming token chunking - SOTA method)
-TTS First Audio:       ~50-70ms   (immediate processing - no buffering)
-─────────────────────────────────────────────
-Total Latency:         ~150-210ms  (achieved: ~170ms average) ✅
-```
+**Reflex Brain (L0)**
+- Emits pre-computed Hindi backchannels immediately when predicted response time exceeds threshold
+- Latency: 0ms
+- Purpose: Maintain conversational flow while deeper processing occurs
 
-### State-of-the-Art Token Chunking Method
+**Speculative Brain (L1)**
+- Generates fast, concise responses using GPT-4o-mini
+- Latency: 200-400ms
+- Purpose: Provide quick initial answers with semantic tagging
 
-We achieve **~170ms latency** using a **streaming token chunking approach** that processes tokens immediately without buffering:
+**Deep Brain (L2)**
+- Produces extended responses or corrections asynchronously
+- Latency: 500-1000ms
+- Purpose: Enhance initial responses with additional context when available
 
-#### 1. **Streaming Token Pipeline (SOTA Method)**
-   - **LLM Streaming**: Groq LLM emits tokens as `TextFrame` objects immediately as they're generated
-   - **Zero Buffering**: TTS receives and processes each `TextFrame` token as it arrives (no sentence aggregation)
-   - **Parallel Processing**: TTS synthesis starts on the **first token** while LLM continues generating subsequent tokens
-   - **Chunk-by-Chunk Processing**: Each token chunk is sent to TTS immediately, creating a continuous audio stream
+### Latency Oracle
 
-#### 2. **Early Triggering with Interim Transcripts**
-   - **STT Interim Transcripts**: LLM starts generating on partial transcripts (before user finishes speaking)
-   - **VAD Fast Detection**: 0.1s start/stop windows for immediate speech detection
-   - **Overlapping Processing**: STT, LLM, and TTS run in parallel pipeline stages
+A metrics collection and prediction system that:
+- Tracks per-provider latency statistics using exponential moving average
+- Predicts future response times for routing decisions
+- Enables data-driven provider selection
 
-#### 3. **Immediate Token-to-Audio Conversion**
-   - **No Sentence Buffering**: `aggregate_sentences=False` ensures TTS processes tokens immediately
-   - **WebSocket Streaming**: Cartesia TTS receives tokens via WebSocket and streams audio chunks back
-   - **Direct Frame Pushing**: Audio frames are pushed to output as soon as they're generated
+### Shadow Traffic
 
-### Technical Implementation
+Background A/B testing system that:
+- Measures alternate providers without affecting user experience
+- Runs on configurable percentage of requests (default 10%)
+- Builds confidence metrics before production switches
 
-**Token Chunking Flow:**
-```
-User Speech → STT (interim) → LLM (token 1) → TTS (audio chunk 1) → Output
-                      ↓              ↓              ↓
-                   STT (final) → LLM (token 2) → TTS (audio chunk 2) → Output
-                                         ↓              ↓
-                                   LLM (token 3) → TTS (audio chunk 3) → Output
-```
-
-**Key Optimization:**
-- Each LLM token is immediately converted to audio without waiting for the complete response
-- This creates a **pipeline of parallel processing** where all stages work simultaneously
-- The first audio chunk arrives in ~170ms, with subsequent chunks streaming continuously
-
-## 🏗️ Architecture
+## System Flow
 
 ```
-User Audio → STT → LLM → TTS → Audio Output
-    ↓         ↓     ↓     ↓
-  VAD    Interim  Stream Stream
-         Transcript
+User Speech
+    |
+    v
+Sarvam STT (Hindi/Hinglish)
+    |
+    v
+Routing Decision (based on latency predictions)
+    |
+    +-- L0 Reflex (if predicted latency > threshold)
+    |
+    +-- L1 Speculative (always)
+    |       |
+    |       +-- Semantic tagging
+    |       +-- Latency tracking
+    |
+    +-- L2 Deep (async, based on urgency)
+    |
+    +-- Shadow Traffic (probabilistic)
+    |
+    v
+Sarvam TTS (Hindi)
+    |
+    v
+User Hears Response
 ```
 
-### Pipeline Flow (Streaming Token Chunking)
+## Installation
 
-1. **User speaks** → VAD detects speech (0.1s detection)
-2. **STT processes** → Emits interim transcripts immediately (~60-80ms)
-3. **LLM receives interim** → Starts generating first token (~40-60ms from transcript)
-4. **TTS receives first token** → Immediately starts synthesis (~50-70ms from token)
-5. **Audio output** → First audio frame arrives (~170ms total)
+### Prerequisites
 
-**Token Chunking Continues:**
-- LLM generates token 2 → TTS processes token 2 → Audio chunk 2
-- LLM generates token 3 → TTS processes token 3 → Audio chunk 3
-- ... continues streaming until response complete
+- Python 3.10 or higher
+- LiveKit server access (cloud or self-hosted)
+- API keys for Sarvam AI and OpenAI
 
-This **SOTA streaming approach** ensures minimal latency by processing tokens as they arrive, not waiting for complete sentences or responses.
+### Setup
 
-## 📊 Latency Calculation
+Install dependencies:
 
-The system tracks latency at multiple points:
-
-- **STT Latency**: `user_stop → first_transcript`
-- **LLM Latency**: `transcript → first_token`
-- **TTS Latency**: `first_token → first_audio`
-- **Total Latency**: `user_stop → first_audio_frame`
-
-All metrics are logged with detailed breakdowns showing:
-- Component-level timing
-- Streaming vs batch processing
-- Target achievement status
-
-## 🚀 Setup
-
-1. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-voice-agent.txt
 ```
 
-2. Set environment variables:
+Configure environment variables in `.env`:
+
 ```bash
-export SARVAM_API_KEY="your_sarvam_key"
-export GROQ_API_KEY="your_groq_key"
-export CARTESIA_API_KEY="your_cartesia_key"
-export LIVEKIT_URL="your_livekit_url"
-export LIVEKIT_API_KEY="your_livekit_key"
-export LIVEKIT_API_SECRET="your_livekit_secret"
+SARVAM_API_KEY=your_sarvam_api_key
+OPENAI_API_KEY=your_openai_api_key
+LIVEKIT_URL=wss://your-livekit-server
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
 ```
 
-3. Run the agent:
+Optional configuration:
+
 ```bash
-python -m server.main
+VOICE_AGENT_OPENAI_MODEL_L1=gpt-4o-mini
+VOICE_AGENT_OPENAI_MODEL_L2=gpt-4o-mini
+VOICE_AGENT_REFLEX_LATENCY_MS=150
+VOICE_AGENT_SHADOW_PROBABILITY=0.1
+VOICE_AGENT_ENABLE_DEEP_BRAIN=true
 ```
 
-## 📈 Performance Monitoring
+Verify setup:
 
-The system includes comprehensive latency logging:
-
-- `⏱️ TOTAL LATENCY`: End-to-end latency measurement
-- `📊 BREAKDOWN`: Component-level timing breakdown
-- `🎵 FIRST AUDIO FRAME`: Most accurate latency (first audio byte)
-- `✅ TARGET ACHIEVED`: Confirms <200ms target
-- `⚠️ TARGET MISSED`: Warns if >200ms
-
-## 🔧 Configuration
-
-Key optimization parameters in `server/services/llm.py`:
-- `max_tokens=15`: Ultra-short responses
-- `temperature=0.3`: Fast, deterministic generation
-- `stream=True`: Enable streaming
-
-Key optimization parameters in `server/services/cartesia_tts.py`:
-- `aggregate_sentences=False`: No sentence buffering
-- `sample_rate=16000`: Match LiveKit transport
-
-## 🔬 Token Chunking Methodology (SOTA)
-
-### How Token Chunking Works
-
-Our **state-of-the-art token chunking method** processes the entire pipeline in a streaming fashion:
-
-1. **LLM Token Generation**: Groq LLM streams tokens one-by-one as `TextFrame` objects
-2. **Immediate TTS Processing**: Each `TextFrame` token is immediately sent to Cartesia TTS
-3. **Parallel Audio Generation**: While TTS synthesizes token N, LLM generates token N+1
-4. **Continuous Streaming**: Audio chunks are pushed to output as they're generated
-
-### Why This Achieves ~170ms
-
-- **No Buffering**: Tokens are processed immediately, not batched
-- **Early Start**: LLM starts on interim transcripts (before user finishes)
-- **Parallel Stages**: STT, LLM, and TTS work simultaneously
-- **Streaming Architecture**: All components support streaming natively
-
-### Comparison to Traditional Methods
-
-**Traditional (Buffered) Approach:**
-```
-User stops → STT (wait for final) → LLM (wait for complete) → TTS (wait for sentence) → Audio
-Total: ~500-800ms
+```bash
+python voice_agent/verify_setup.py
 ```
 
-**Our SOTA Streaming Approach:**
+## Usage
+
+### Running the Agent
+
+Start the voice agent:
+
+```bash
+python -m voice_agent.main
 ```
-User stops → STT (interim) → LLM (token 1) → TTS (chunk 1) → Audio
-Total: ~170ms ✅
+
+With custom room and identity:
+
+```bash
+python -m voice_agent.main --room your-room-name --identity agent-identity
 ```
 
-## 📝 Technical Notes
+Using the convenience script:
 
-- **Streaming Token Chunking**: Each LLM token triggers immediate TTS synthesis
-- **Zero Sentence Aggregation**: `aggregate_sentences=False` ensures no buffering
-- **Interim Transcript Triggering**: LLM starts on partial transcripts for early processing
-- **WebSocket Streaming**: All components use WebSocket for real-time streaming
-- **Parallel Pipeline**: All stages process simultaneously, not sequentially
+```bash
+./run_voice_agent.sh --room your-room-name
+```
 
-## 🎯 Performance Metrics
+### Demo Mode
 
-**Achieved Latency: ~170ms** (consistently sub-200ms)
+Test the three-brain architecture without LiveKit:
 
-- ✅ **STT**: 60-80ms (with interim transcripts)
-- ✅ **LLM First Token**: 40-60ms (streaming token chunking)
-- ✅ **TTS First Audio**: 50-70ms (immediate processing)
-- ✅ **Total**: ~170ms average
+```bash
+export OPENAI_API_KEY=your_key
+python demo_three_brains.py
+```
 
-This performance is achieved through our **SOTA streaming token chunking methodology** that processes tokens immediately without any buffering delays.
+This runs sample conversations through the system and displays latency metrics.
+
+## Configuration
+
+### Latency Tuning
+
+Adjust reflex threshold based on requirements:
+
+- Lower threshold (100ms): More reflexes, aggressive responsiveness
+- Higher threshold (300ms): Fewer reflexes, rely on L1 speed
+
+### Model Selection
+
+Configure different models for L1 and L2:
+
+```bash
+VOICE_AGENT_OPENAI_MODEL_L1=gpt-4o-mini  # Fast model
+VOICE_AGENT_OPENAI_MODEL_L2=gpt-4o       # Higher quality model
+```
+
+### Shadow Traffic
+
+Control A/B testing percentage:
+
+```bash
+VOICE_AGENT_SHADOW_PROBABILITY=0.2  # 20% of requests
+```
+
+## Performance
+
+### Latency Targets
+
+| Component | Target | Typical |
+|-----------|--------|---------|
+| STT | 60-80ms | 70ms |
+| L0 Reflex | 0ms | 0ms |
+| L1 Speculative | 200-300ms | 250ms |
+| L2 Deep | 500-800ms | 650ms |
+| TTS | 50-70ms | 60ms |
+| Total (with reflex) | 70-150ms perceived | 70ms |
+| Total (without reflex) | 310-450ms | 380ms |
+
+### Cost Structure
+
+Per-turn costs using default configuration:
+
+- L0: $0
+- L1 (GPT-4o-mini): ~$0.0001
+- L2 (GPT-4o, 40% of turns): ~$0.00012
+- Shadow (10% of turns): ~$0.00001
+
+Average: ~$0.00015 per turn
+
+## Project Structure
+
+```
+voice_agent/
+├── config.py              # Configuration management
+├── livekit_token.py       # JWT token generation
+├── metrics.py             # Latency oracle implementation
+├── router.py              # Provider routing logic
+├── brains/
+│   ├── reflex.py         # L0 implementation
+│   ├── speculative.py    # L1 implementation
+│   └── deep.py           # L2 implementation
+├── pipeline.py            # Pipecat orchestration
+├── main.py               # CLI entrypoint
+└── verify_setup.py       # Setup verification
+```
+
+## Monitoring
+
+The latency oracle tracks metrics per provider:
+
+```python
+oracle.log_summary()
+```
+
+Output includes:
+- Request count per provider
+- Average first token latency
+- Average total completion time
+- EMA-based predictions
+
+## Extension Points
+
+### Adding New Providers
+
+The router is designed for easy provider addition:
+
+```python
+def choose_llm_for_turn(oracle):
+    if oracle.predict_first_token_ms("groq-fast") < threshold:
+        return "groq-fast"
+    return "openai-l1"
+```
+
+### Quality Metrics
+
+Shadow traffic can be extended with quality scoring:
+
+```python
+quality = evaluate_response(shadow_answer)
+oracle.record_quality(provider_id, latency, quality)
+```
+
+## Documentation
+
+- `THREE_BRAIN_ARCHITECTURE.md` - Detailed architecture documentation
+- `THREE_BRAIN_IMPLEMENTATION_SUMMARY.md` - Implementation details
+- `voice_agent/QUICK_START.md` - Quick setup guide
+- `voice_agent/EXAMPLES.md` - Code examples and patterns
+
+## Requirements
+
+Core dependencies:
+- pipecat-ai[daily,openai,sarvam]
+- livekit
+- openai
+- python-dotenv
+- loguru
+
+See `requirements-voice-agent.txt` for complete list.
+
+## License
+
+See LICENSE file for details.
+
+## Technical Details
+
+### EMA Implementation
+
+The latency oracle uses exponential moving average with alpha=0.3:
+
+```
+new_avg = (0.3 × new_value) + (0.7 × old_avg)
+```
+
+This provides smooth predictions while weighting recent measurements higher.
+
+### Turn Management
+
+Each turn follows this sequence:
+
+1. STT completion triggers routing decision
+2. Oracle predicts latencies for available providers
+3. Reflex emitted if prediction exceeds threshold
+4. L1 generates and records metrics
+5. L2 launches asynchronously
+6. Shadow traffic runs probabilistically
+7. All metrics recorded for future routing
+
+### Provider Identification
+
+Providers are identified by string keys:
+- `openai-l1` - Fast OpenAI model for speculative brain
+- `openai-l2` - OpenAI model for deep brain
+- `openai-l2-shadow` - Shadow traffic measurements
+- Additional providers can be added with same pattern
+
+## Support
+
+For issues or questions, refer to the documentation files or examine the code in `voice_agent/` directory.

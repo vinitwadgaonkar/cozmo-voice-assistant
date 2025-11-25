@@ -1,0 +1,16 @@
+# Voice Agent Dependencies
+# LiveKit + Pipecat + Sarvam + OpenAI Hindi Voice Agent
+
+# Pipecat with integrations
+pipecat-ai[daily,openai,sarvam]>=0.0.50
+
+# LiveKit Python SDK for token generation
+livekit>=0.11.0
+
+# OpenAI SDK for direct client access (three-brain architecture)
+openai>=1.0.0
+
+# Environment and logging
+python-dotenv>=1.0.0
+loguru>=0.7.0
+
