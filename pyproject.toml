@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cozmo-voice-agent"
+version = "1.0.0"
+description = "Production-oriented Hindi voice agent with three-brain architecture achieving 173ms latency"
+authors = [
+    {name = "Vinit Wadgaonkar", email = "vinit@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["voice-agent", "hindi", "livekit", "pipecat", "sarvam", "low-latency"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "pipecat-ai[daily,openai,sarvam]>=0.0.50",
+    "livekit>=0.11.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "loguru>=0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "flake8>=6.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vinitwadgaonkar/cozmo-voice-assistant"
+Repository = "https://github.com/vinitwadgaonkar/cozmo-voice-assistant"
+Documentation = "https://github.com/vinitwadgaonkar/cozmo-voice-assistant/blob/main/README.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["voice_agent*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+

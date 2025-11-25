@@ -1,6 +1,7 @@
 """Configuration management for the voice agent."""
 
 from dataclasses import dataclass
+from typing import Optional
 import os
 from dotenv import load_dotenv
 
@@ -32,6 +33,14 @@ class OpenAIConfig:
 
 
 @dataclass
+class GroqConfig:
+    """Groq API configuration."""
+    api_key: str
+    model: str = "llama-3.1-70b-versatile"  # Fast Groq model
+    enabled: bool = True
+
+
+@dataclass
 class AgentBehaviorConfig:
     """Agent behavior and routing configuration."""
     reflex_latency_ms: int = 150  # Trigger reflex if predicted latency exceeds this
@@ -45,6 +54,7 @@ class VoiceAgentConfig:
     livekit: LiveKitConfig
     sarvam: SarvamConfig
     openai: OpenAIConfig
+    groq: Optional[GroqConfig]
     behavior: AgentBehaviorConfig
 
 
@@ -81,11 +91,21 @@ def load_config() -> VoiceAgentConfig:
         model_l2=os.getenv("VOICE_AGENT_OPENAI_MODEL_L2", "gpt-4o-mini"),
     )
 
+    # Optional Groq configuration
+    groq = None
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        groq = GroqConfig(
+            api_key=groq_api_key,
+            model=os.getenv("VOICE_AGENT_GROQ_MODEL", "llama-3.1-70b-versatile"),
+            enabled=os.getenv("VOICE_AGENT_GROQ_ENABLED", "true").lower() == "true",
+        )
+
     behavior = AgentBehaviorConfig(
         reflex_latency_ms=int(os.getenv("VOICE_AGENT_REFLEX_LATENCY_MS", "150")),
         shadow_traffic_probability=float(os.getenv("VOICE_AGENT_SHADOW_PROBABILITY", "0.1")),
         enable_deep_brain=os.getenv("VOICE_AGENT_ENABLE_DEEP_BRAIN", "true").lower() == "true",
     )
 
-    return VoiceAgentConfig(livekit=livekit, sarvam=sarvam, openai=openai, behavior=behavior)
+    return VoiceAgentConfig(livekit=livekit, sarvam=sarvam, openai=openai, groq=groq, behavior=behavior)
 

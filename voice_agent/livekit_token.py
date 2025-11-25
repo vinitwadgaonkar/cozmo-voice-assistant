@@ -35,3 +35,5 @@ def create_access_token(cfg: VoiceAgentConfig, room_name: str, identity: str) ->
 
     return token.to_jwt()
 
+
+

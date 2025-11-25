@@ -49,37 +49,64 @@ def should_trigger_reflex(
 
 def choose_llm_for_turn(
     oracle: LatencyOracle,
+    groq_available: bool = False,
     fast_threshold_ms: float = 150.0,
+    quality_threshold: float = 0.8,
 ) -> str:
     """
     Choose which LLM provider to use for the speculative (L1) brain.
     
-    In this POC, we support:
+    Supports:
+    - "groq-l1" - Ultra-fast Groq model (llama-3.1-70b)
     - "openai-l1" - Fast OpenAI model (gpt-4o-mini)
-    - "openai-l2" - Deeper OpenAI model (could be same or larger)
+    - "openai-l2" - Fallback OpenAI model
     
-    Later this can be extended to support Groq, Claude, etc.
+    Selection criteria (in order):
+    1. Provider must be available (no recent errors)
+    2. Quality score above threshold
+    3. Lowest predicted latency
     
     Args:
         oracle: Latency oracle with historical data
+        groq_available: Whether Groq is configured
         fast_threshold_ms: Threshold for "fast enough"
+        quality_threshold: Minimum quality score required
     
     Returns:
-        Provider ID string like "openai-l1"
+        Provider ID string like "groq-l1" or "openai-l1"
     """
-    # For now, always use openai-l1 for speculative brain
-    # In the future, this could choose between multiple providers
-    # based on predicted latency and availability
+    candidates = []
     
-    primary_provider = "openai-l1"
-    predicted_ms = oracle.predict_first_token_ms(primary_provider)
+    # Build list of available providers
+    if groq_available:
+        groq_stats = oracle.get_stats("groq-l1")
+        if groq_stats.is_available and groq_stats.quality_score >= quality_threshold:
+            predicted_latency = oracle.predict_first_token_ms("groq-l1")
+            candidates.append(("groq-l1", predicted_latency, groq_stats.quality_score))
     
-    logger.debug(
-        f"Choosing {primary_provider} for L1 brain "
-        f"(predicted first token: {predicted_ms:.0f}ms)"
+    # Always consider OpenAI as fallback
+    openai_stats = oracle.get_stats("openai-l1")
+    if openai_stats.is_available and openai_stats.quality_score >= quality_threshold:
+        predicted_latency = oracle.predict_first_token_ms("openai-l1")
+        candidates.append(("openai-l1", predicted_latency, openai_stats.quality_score))
+    
+    # Fallback to L2 model if L1 is down
+    if not candidates:
+        logger.warning("No L1 providers available, falling back to openai-l2")
+        return "openai-l2"
+    
+    # Sort by latency (lower is better), then by quality (higher is better)
+    candidates.sort(key=lambda x: (x[1], -x[2]))
+    
+    chosen = candidates[0]
+    provider_id, predicted_ms, quality = chosen
+    
+    logger.info(
+        f"Choosing {provider_id} for L1 brain: "
+        f"predicted_latency={predicted_ms:.0f}ms, quality={quality:.2f}"
     )
     
-    return primary_provider
+    return provider_id
 
 
 def should_run_shadow_traffic(probability: float = 0.1) -> bool:
@@ -138,6 +165,55 @@ def get_l2_provider(l1_provider: str) -> str:
     return "openai-l2"
 
 
+def should_skip_deep_brain(semantic_tag: dict, oracle: LatencyOracle) -> bool:
+    """
+    Decide whether to skip the deep brain for this turn.
+    
+    Args:
+        semantic_tag: Semantic tag from L1
+        oracle: Latency oracle for checking system load
+    
+    Returns:
+        True if deep brain should be skipped
+    """
+    urgency = semantic_tag.get("urgency", "medium")
+    intent = semantic_tag.get("intent", "unknown")
+    
+    # Skip for high-urgency requests
+    if urgency == "high":
+        logger.debug("Skipping L2: high urgency")
+        return True
+    
+    # Skip for trivial chitchat
+    if intent == "chitchat" and semantic_tag.get("length_hint") == "short":
+        logger.debug("Skipping L2: trivial chitchat")
+        return True
+    
+    return False
+
+
+def should_skip_reflex(semantic_tag: dict = None) -> bool:
+    """
+    Decide whether to skip reflex for trivial queries.
+    
+    Args:
+        semantic_tag: Optional semantic tag from previous analysis
+    
+    Returns:
+        True if reflex should be skipped
+    """
+    if not semantic_tag:
+        return False
+    
+    # Skip reflex for very simple queries
+    intent = semantic_tag.get("intent", "unknown")
+    if intent in ["greeting", "farewell", "acknowledgment"]:
+        logger.debug("Skipping reflex: trivial query")
+        return True
+    
+    return False
+
+
 def log_routing_decision(
     turn_id: str,
     l1_provider: str,
@@ -162,4 +238,6 @@ def log_routing_decision(
     logger.info(f"  Deep Brain (L2): {l2_provider}")
     logger.info(f"  Shadow Traffic: {'✓ RUNNING' if shadow_running else '✗ disabled'}")
     logger.info("=" * 60)
+
+
 

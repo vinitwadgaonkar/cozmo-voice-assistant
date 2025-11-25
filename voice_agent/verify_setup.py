@@ -59,7 +59,10 @@ def check_config():
         logger.info(f"  LiveKit URL: {cfg.livekit.url}")
         logger.info(f"  Default Room: {cfg.livekit.default_room}")
         logger.info(f"  Default Identity: {cfg.livekit.default_identity}")
-        logger.info(f"  OpenAI Model: {cfg.openai.model}")
+        logger.info(f"  OpenAI Model L1: {cfg.openai.model_l1}")
+        logger.info(f"  OpenAI Model L2: {cfg.openai.model_l2}")
+        logger.info(f"  Reflex Threshold: {cfg.behavior.reflex_latency_ms}ms")
+        logger.info(f"  Shadow Traffic: {cfg.behavior.shadow_traffic_probability*100:.0f}%")
         
         return True
         
@@ -146,4 +149,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
 

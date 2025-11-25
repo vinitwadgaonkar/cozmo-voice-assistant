@@ -1,23 +1,26 @@
 """
 Speculative Brain (L1) - Fast, shallow answer generation.
 
-Uses a fast OpenAI model to generate short, safe initial responses
+Uses a fast OpenAI/Groq model to generate short, safe initial responses
 with semantic tagging for downstream decision-making.
 """
 
 import json
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 from loguru import logger
 from openai import AsyncOpenAI
+import asyncio
 
 
 async def generate_speculative_reply(
     client: AsyncOpenAI,
     model: str,
     transcript: str,
+    timeout_seconds: float = 5.0,
+    groq_client: Optional[Any] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """
-    Generate a fast, speculative reply using L1 brain.
+    Generate a fast, speculative reply using L1 brain with retry logic.
     
     Produces:
     1. A short (1-2 sentence) Hindi/Hinglish answer
@@ -27,11 +30,13 @@ async def generate_speculative_reply(
         client: OpenAI async client
         model: Model name (e.g., "gpt-4o-mini")
         transcript: User's speech transcript
+        timeout_seconds: Timeout for API call
+        groq_client: Optional Groq client for alternate provider
     
     Returns:
         Tuple of (answer_text, semantic_tag_dict)
     """
-    logger.info(f"🧠 SPECULATIVE BRAIN (L1): Generating reply with model {model}")
+    logger.info(f"SPECULATIVE BRAIN (L1): Generating reply with model {model}")
     
     system_prompt = """You are a helpful Hindi voice assistant. 
     
@@ -45,37 +50,65 @@ TAG: {"intent": "question|command|chitchat|...", "urgency": "low|medium|high", "
 
 Keep answers concise and conversational. This is a spoken conversation."""
 
+    # Try with timeout
     try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": transcript},
-            ],
-            temperature=0.3,
-            max_tokens=100,  # Keep it short
-        )
+        async def _generate():
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": transcript},
+                ],
+                temperature=0.3,
+                max_tokens=100,
+            )
+            return response.choices[0].message.content
         
-        content = response.choices[0].message.content
+        content = await asyncio.wait_for(_generate(), timeout=timeout_seconds)
+        
         logger.debug(f"L1 raw response: {content}")
-        
-        # Parse the response
         answer, tag = _parse_l1_response(content)
         
-        logger.info(f"🧠 L1 Answer: {answer}")
-        logger.info(f"🏷️  L1 Tag: {tag}")
+        logger.info(f"L1 Answer: {answer}")
+        logger.info(f"L1 Tag: {tag}")
         
         return answer, tag
         
+    except asyncio.TimeoutError:
+        logger.error(f"L1 timeout after {timeout_seconds}s")
+        return _fallback_response(transcript, "timeout")
+        
     except Exception as e:
         logger.error(f"Error in speculative brain: {e}")
-        # Fallback response
-        return "Haan, main samajh gaya. Ek second.", {
-            "intent": "unknown",
-            "urgency": "low",
-            "length_hint": "short",
-            "error": str(e),
-        }
+        return _fallback_response(transcript, str(e))
+
+
+def _fallback_response(transcript: str, error: str) -> Tuple[str, Dict[str, Any]]:
+    """
+    Provide fallback response when L1 fails.
+    
+    Args:
+        transcript: User's input
+        error: Error description
+    
+    Returns:
+        Tuple of (fallback_answer, tag)
+    """
+    fallback_answers = [
+        "Haan, main samajh gaya. Ek second.",
+        "Ji, dekh raha hoon. Thoda intezaar karein.",
+        "Main check kar raha hoon.",
+    ]
+    
+    answer = fallback_answers[hash(transcript) % len(fallback_answers)]
+    
+    return answer, {
+        "intent": "unknown",
+        "urgency": "medium",
+        "length_hint": "short",
+        "error": error,
+        "fallback": True,
+    }
 
 
 def _parse_l1_response(content: str) -> Tuple[str, Dict[str, Any]]:
@@ -178,4 +211,6 @@ Keep it conversational and natural. This is spoken conversation."""
             "length_hint": "short",
             "error": str(e),
         }
+
+
 

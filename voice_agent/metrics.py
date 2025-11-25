@@ -18,9 +18,27 @@ class LatencyStats:
     count: int = 0
     avg_first_token_ms: float = 0.0
     avg_total_ms: float = 0.0
+    error_count: int = 0
+    timeout_count: int = 0
+    last_error_time: float = 0.0
+    quality_score: float = 1.0  # 0.0 to 1.0, defaults to perfect
+    
+    @property
+    def error_rate(self) -> float:
+        """Calculate error rate as percentage."""
+        if self.count + self.error_count == 0:
+            return 0.0
+        return self.error_count / (self.count + self.error_count)
+    
+    @property
+    def is_available(self) -> bool:
+        """Check if provider is currently available (no recent errors)."""
+        import time
+        # Consider unavailable if last error was within 60 seconds
+        return time.time() - self.last_error_time > 60.0
     
     def __repr__(self) -> str:
-        return f"LatencyStats(n={self.count}, first_token={self.avg_first_token_ms:.0f}ms, total={self.avg_total_ms:.0f}ms)"
+        return f"LatencyStats(n={self.count}, first_token={self.avg_first_token_ms:.0f}ms, total={self.avg_total_ms:.0f}ms, errors={self.error_count}, quality={self.quality_score:.2f})"
 
 
 class LatencyOracle:
@@ -103,6 +121,49 @@ class LatencyOracle:
         """Get all tracked statistics."""
         return dict(self.stats)
     
+    def record_error(self, provider_id: str, error_type: str = "general") -> None:
+        """
+        Record an error for a provider.
+        
+        Args:
+            provider_id: Provider identifier
+            error_type: Type of error ("timeout", "api_error", "general")
+        """
+        import time
+        stats = self.stats[provider_id]
+        stats.error_count += 1
+        stats.last_error_time = time.time()
+        
+        if error_type == "timeout":
+            stats.timeout_count += 1
+        
+        logger.warning(
+            f"Recorded error for {provider_id}: type={error_type}, "
+            f"total_errors={stats.error_count}, error_rate={stats.error_rate:.1%}"
+        )
+    
+    def record_quality(self, provider_id: str, quality_score: float) -> None:
+        """
+        Record quality score for a provider.
+        
+        Args:
+            provider_id: Provider identifier
+            quality_score: Quality score from 0.0 to 1.0
+        """
+        stats = self.stats[provider_id]
+        
+        # Use EMA for quality score as well
+        if stats.count == 0:
+            stats.quality_score = quality_score
+        else:
+            alpha = self.ema_alpha
+            stats.quality_score = (alpha * quality_score) + ((1 - alpha) * stats.quality_score)
+        
+        logger.debug(
+            f"Recorded quality for {provider_id}: "
+            f"score={quality_score:.2f}, avg_quality={stats.quality_score:.2f}"
+        )
+    
     def log_summary(self) -> None:
         """Log a summary of all tracked providers."""
         if not self.stats:
@@ -154,4 +215,6 @@ class LatencyTimer:
         if self.end_time == 0.0:
             return 0.0
         return (self.end_time - self.start_time) * 1000.0
+
+
 
