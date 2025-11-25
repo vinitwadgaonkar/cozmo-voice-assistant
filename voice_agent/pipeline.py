@@ -11,9 +11,15 @@ This module builds the Pipecat pipeline and wires together:
 
 import asyncio
 import uuid
-from typing import Optional
+from typing import Optional, Dict, Any
 from loguru import logger
 from openai import AsyncOpenAI
+
+try:
+    from groq import AsyncGroq
+except ImportError:
+    AsyncGroq = None
+    logger.warning("Groq SDK not installed, Groq provider unavailable")
 
 try:
     from pipecat.transports.services.livekit import LiveKitTransportService, LiveKitParams
@@ -42,7 +48,7 @@ from .router import (
     log_routing_decision,
 )
 from .brains.reflex import maybe_emit_reflex
-from .brains.speculative import generate_speculative_reply
+from .brains.speculative import generate_speculative_reply_multi_provider
 from .brains.deep import run_deep_brain_async, should_run_deep_brain
 
 
@@ -51,12 +57,28 @@ class ThreeBrainOrchestrator:
     Orchestrates the three-brain architecture with shadow traffic.
     
     Handles turn management, routing decisions, and metrics tracking.
+    Supports multiple LLM providers: OpenAI, Groq, etc.
     """
     
     def __init__(self, cfg: VoiceAgentConfig):
         self.cfg = cfg
         self.oracle = LatencyOracle()
         self.openai_client = AsyncOpenAI(api_key=cfg.openai.api_key)
+        
+        # Initialize Groq client if available
+        self.groq_client = None
+        self.groq_available = False
+        if cfg.groq and cfg.groq.enabled and AsyncGroq:
+            try:
+                self.groq_client = AsyncGroq(api_key=cfg.groq.api_key)
+                self.groq_available = True
+                logger.info("✅ Groq client initialized successfully")
+            except Exception as e:
+                logger.warning(f"⚠️  Groq initialization failed: {e}")
+                self.groq_available = False
+        else:
+            logger.info("ℹ️  Groq disabled or not available")
+        
         self.turn_counter = 0
         
         # Queue for sending text to TTS
@@ -78,7 +100,10 @@ class ThreeBrainOrchestrator:
         logger.info("=" * 70)
         
         # Step 1: Make routing decisions
-        l1_provider = choose_llm_for_turn(self.oracle)
+        l1_provider = choose_llm_for_turn(
+            self.oracle,
+            groq_available=self.groq_available,
+        )
         l2_provider = get_l2_provider(l1_provider)
         should_reflex = should_trigger_reflex(
             self.oracle,
@@ -94,13 +119,22 @@ class ThreeBrainOrchestrator:
             await maybe_emit_reflex(should_reflex, self._send_to_tts)
         
         # Step 3: Generate speculative (L1) answer
+        # Choose client and model based on routing decision
+        if l1_provider == "groq-l1" and self.groq_client:
+            client = self.groq_client
+            model = self.cfg.groq.model
+        else:
+            client = self.openai_client
+            model = self.cfg.openai.model_l1
+        
         timer_l1 = LatencyTimer("L1")
         with timer_l1:
             timer_l1.mark_first_token()  # For non-streaming, mark immediately
-            answer_l1, semantic_tag = await generate_speculative_reply(
-                client=self.openai_client,
-                model=self.cfg.openai.model_l1,
+            answer_l1, semantic_tag = await generate_speculative_reply_multi_provider(
+                client=client,
+                model=model,
                 transcript=transcript,
+                provider=l1_provider,
             )
         
         # Record L1 latency

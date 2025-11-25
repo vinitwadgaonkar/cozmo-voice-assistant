@@ -3,13 +3,96 @@ Speculative Brain (L1) - Fast, shallow answer generation.
 
 Uses a fast OpenAI/Groq model to generate short, safe initial responses
 with semantic tagging for downstream decision-making.
+
+Supports multiple LLM providers: OpenAI, Groq, etc.
 """
 
 import json
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, Union
 from loguru import logger
 from openai import AsyncOpenAI
 import asyncio
+
+try:
+    from groq import AsyncGroq
+except ImportError:
+    AsyncGroq = None
+
+
+async def generate_speculative_reply_multi_provider(
+    client: Union[AsyncOpenAI, Any],
+    model: str,
+    transcript: str,
+    provider: str = "openai-l1",
+    timeout_seconds: float = 5.0,
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Generate a fast, speculative reply supporting multiple LLM providers.
+    
+    Supports:
+    - OpenAI (gpt-4o-mini, gpt-4o)
+    - Groq (llama-3.1-70b-versatile, llama-3.1-8b-instant)
+    
+    Produces:
+    1. A short (1-2 sentence) Hindi/Hinglish answer
+    2. A semantic tag with metadata about the turn
+    
+    Args:
+        client: AsyncOpenAI or AsyncGroq client
+        model: Model name
+        transcript: User's speech transcript
+        provider: Provider ID for logging (e.g., "groq-l1", "openai-l1")
+        timeout_seconds: Timeout for API call
+    
+    Returns:
+        Tuple of (answer_text, semantic_tag_dict)
+    """
+    logger.info(f"SPECULATIVE BRAIN (L1): Generating reply with {provider} / {model}")
+    
+    system_prompt = """You are a helpful Hindi voice assistant. 
+    
+Your task is to provide:
+1. A SHORT answer in Hindi or Hinglish (1-2 sentences maximum)
+2. A semantic tag as JSON
+
+Format your response as:
+ANSWER: [your 1-2 sentence answer]
+TAG: {"intent": "question|command|chitchat|...", "urgency": "low|medium|high", "length_hint": "short|long"}
+
+Keep answers concise and conversational. This is a spoken conversation."""
+
+    # Try with timeout
+    try:
+        async def _generate():
+            # Both OpenAI and Groq use same API structure
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": transcript},
+                ],
+                temperature=0.3,
+                max_tokens=100,
+            )
+            return response.choices[0].message.content
+        
+        content = await asyncio.wait_for(_generate(), timeout=timeout_seconds)
+        
+        logger.debug(f"L1 raw response ({provider}): {content}")
+        answer, tag = _parse_l1_response(content)
+        
+        logger.info(f"L1 Answer ({provider}): {answer}")
+        logger.info(f"L1 Tag: {tag}")
+        
+        return answer, tag
+        
+    except asyncio.TimeoutError:
+        logger.error(f"L1 timeout after {timeout_seconds}s for {provider}")
+        return _fallback_response(transcript, f"{provider}_timeout")
+        
+    except Exception as e:
+        logger.error(f"Error in speculative brain ({provider}): {e}")
+        return _fallback_response(transcript, f"{provider}_{str(e)}")
 
 
 async def generate_speculative_reply(

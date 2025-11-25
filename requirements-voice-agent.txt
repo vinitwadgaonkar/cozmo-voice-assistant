@@ -10,6 +10,9 @@ livekit>=0.11.0
 # OpenAI SDK for direct client access (three-brain architecture)
 openai>=1.0.0
 
+# Groq SDK for fast LLM inference (optional but recommended)
+groq>=0.9.0
+
 # Environment and logging
 python-dotenv>=1.0.0
 loguru>=0.7.0
