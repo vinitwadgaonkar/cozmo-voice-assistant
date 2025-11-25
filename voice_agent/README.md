@@ -2,7 +2,7 @@
 
 **A production-ready Hindi voice agent using LiveKit + Pipecat + Sarvam + OpenAI**
 
-## 🎯 What This Does
+##  What This Does
 
 Real-time Hindi/Hinglish voice conversations powered by:
 - **LiveKit** - WebRTC audio streaming
@@ -61,7 +61,7 @@ User Speech (LiveKit WebRTC)
 Agent Speech (LiveKit WebRTC)
 ```
 
-## 🚀 Usage
+##  Usage
 
 ### Basic Usage
 
@@ -166,10 +166,10 @@ python verify_setup.py
 ```
 
 This checks:
-- ✅ All packages installed
-- ✅ Pipecat services available
-- ✅ Environment variables set
-- ✅ Configuration loads correctly
+- Confirmed All packages installed
+- Confirmed Pipecat services available
+- Confirmed Environment variables set
+- Confirmed Configuration loads correctly
 
 ### Common Issues
 
@@ -188,7 +188,7 @@ pip install 'pipecat-ai[daily,openai,sarvam]'
 - Check API keys are correct
 - Test LiveKit server is accessible
 
-## 📊 Performance
+##  Performance
 
 **Expected latency:**
 - STT: ~60-80ms
@@ -203,10 +203,10 @@ pip install 'pipecat-ai[daily,openai,sarvam]'
 
 ## 🔐 Security
 
-- ✅ API keys via environment variables
-- ✅ `.env` in `.gitignore`
-- ✅ LiveKit JWT tokens
-- ✅ No secrets in code
+- Confirmed API keys via environment variables
+- Confirmed `.env` in `.gitignore`
+- Confirmed LiveKit JWT tokens
+- Confirmed No secrets in code
 
 ## 🚢 Deployment
 
@@ -254,5 +254,5 @@ Part of the Cozmo voice assistant project.
 - Run `python verify_setup.py` for diagnostics
 - See `EXAMPLES.md` for customization
 
-**Ready to build? Let's go! 🚀**
+**Ready to build? Let's go! **
 

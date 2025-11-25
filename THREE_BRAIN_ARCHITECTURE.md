@@ -2,7 +2,7 @@
 
 A production-minded Hindi voice agent with layered intelligence and real-time performance optimization.
 
-## 🧠 Overview
+##  Overview
 
 This system implements a **three-brain architecture** where responses are generated at different depth levels, with smart routing based on predicted latencies. This enables optimal trade-offs between response speed and answer quality.
 
@@ -144,10 +144,10 @@ You already gave a quick answer. Review it:
 ### When L2 runs:
 
 Based on semantic tag:
-- ✅ Run for: `urgency="low"`, `intent="question"`
-- ❌ Skip for: `urgency="high"` (time-sensitive), `intent="chitchat"`
+- Confirmed Run for: `urgency="low"`, `intent="question"`
+- No Skip for: `urgency="high"` (time-sensitive), `intent="chitchat"`
 
-## 🎯 Latency Oracle
+##  Latency Oracle
 
 **Purpose:** Track provider performance and predict future latencies
 
@@ -197,7 +197,7 @@ else:
     use_openai()
 ```
 
-## 🔬 Shadow Traffic
+##  Shadow Traffic
 
 **Purpose:** Measure alternate providers without affecting user experience
 
@@ -248,7 +248,7 @@ if random.random() < 0.1:
 3. **Cost vs quality** trade-off analysis
 4. **Failover readiness** - alternate providers are "warm"
 
-## 📊 Complete Turn Flow
+##  Complete Turn Flow
 
 ### Example: User asks "Delhi mein traffic kaisa hai?"
 
@@ -263,21 +263,21 @@ Oracle predictions:
   openai-l1: ~320ms (> 150ms threshold)
   
 Decisions:
-  ✓ Trigger reflex (latency > threshold)
-  ✓ Use openai-l1 for L1
-  ✓ Run openai-l2 for L2 (urgency not high)
-  ✓ Run shadow traffic (random.random() < 0.1)
+  Yes Trigger reflex (latency > threshold)
+  Yes Use openai-l1 for L1
+  Yes Run openai-l2 for L2 (urgency not high)
+  Yes Run shadow traffic (random.random() < 0.1)
 ```
 
 #### Step 3: Reflex emitted (0ms)
 ```
-🎯 L0: "haan ji, ek second"
+ L0: "haan ji, ek second"
 → User hears immediately
 ```
 
 #### Step 4: L1 generates answer (320ms)
 ```
-🧠 L1: Calling GPT-4o-mini...
+ L1: Calling GPT-4o-mini...
 Answer: "Delhi mein abhi heavy traffic hai, especially Ring Road par."
 Tag: {"intent": "traffic_info", "urgency": "medium", "length_hint": "short"}
 → User hears at 320ms
@@ -285,14 +285,14 @@ Tag: {"intent": "traffic_info", "urgency": "medium", "length_hint": "short"}
 
 #### Step 5: L2 runs async (800ms total)
 ```
-🧠 L2: Analyzing L1 answer...
+ L2: Analyzing L1 answer...
 Follow-up: "Accha, ek aur detail - Nizamuddin se Dhaula Kuan ka route slow hai, alternate le sakte ho."
 → User hears at 800ms (3 seconds after their question)
 ```
 
 #### Step 6: Shadow traffic measures (background)
 ```
-🔬 Shadow: Running gpt-4o in background...
+ Shadow: Running gpt-4o in background...
 Measured: first_token=140ms, total=450ms
 Recorded: openai-l2-shadow stats updated
 → User never hears this, only metrics recorded
@@ -342,7 +342,7 @@ config.behavior.enable_deep_brain = True
 config.behavior.shadow_traffic_probability = 0.5  # 50%
 ```
 
-## 🚀 Future Extensions
+##  Future Extensions
 
 ### Adding Groq support:
 
@@ -472,34 +472,34 @@ User said: Delhi mein traffic kaisa hai?
 ==================================================================
 ============================================================
 ROUTING DECISION - Turn turn-5
-  Reflex Brain (L0): ✓ ACTIVE
+  Reflex Brain (L0): Yes ACTIVE
   Speculative Brain (L1): openai-l1
   Deep Brain (L2): openai-l2
-  Shadow Traffic: ✓ RUNNING
+  Shadow Traffic: Yes RUNNING
 ============================================================
-🎯 REFLEX BRAIN (L0): Emitting 'haan ji, ek second'
-🧠 SPECULATIVE BRAIN (L1): Generating reply with model gpt-4o-mini
-🧠 L1 Answer: Delhi mein abhi heavy traffic hai, especially Ring Road par.
-⏱️  L1 latency: 320ms
-🧠 Starting L2 brain for turn-5...
-🔬 Running shadow traffic for turn-5 with openai-l2-shadow...
-✅ Turn turn-5 complete (L1 answer sent)
-🧠 L2 Follow-up: Accha, ek aur detail - Nizamuddin se Dhaula Kuan...
-⏱️  L2 latency: 802ms
-🔬 Shadow answer: Delhi mein traffic heavy hai...
-⏱️  Shadow latency: 455ms
+ REFLEX BRAIN (L0): Emitting 'haan ji, ek second'
+ SPECULATIVE BRAIN (L1): Generating reply with model gpt-4o-mini
+ L1 Answer: Delhi mein abhi heavy traffic hai, especially Ring Road par.
+  L1 latency: 320ms
+ Starting L2 brain for turn-5...
+ Running shadow traffic for turn-5 with openai-l2-shadow...
+Confirmed Turn turn-5 complete (L1 answer sent)
+ L2 Follow-up: Accha, ek aur detail - Nizamuddin se Dhaula Kuan...
+  L2 latency: 802ms
+ Shadow answer: Delhi mein traffic heavy hai...
+  Shadow latency: 455ms
 ```
 
 ## 📝 Summary
 
 This three-brain architecture provides:
 
-✅ **Sub-100ms perceived latency** via reflex brain  
-✅ **~300ms actual answers** via speculative brain  
-✅ **Richer follow-ups** via deep brain  
-✅ **Data-driven routing** via latency oracle  
-✅ **Risk-free experimentation** via shadow traffic  
-✅ **Production-ready structure** with metrics, logging, error handling  
+Confirmed **Sub-100ms perceived latency** via reflex brain  
+Confirmed **~300ms actual answers** via speculative brain  
+Confirmed **Richer follow-ups** via deep brain  
+Confirmed **Data-driven routing** via latency oracle  
+Confirmed **Risk-free experimentation** via shadow traffic  
+Confirmed **Production-ready structure** with metrics, logging, error handling  
 
 **Next steps:**
 1. Wire full Pipecat STT event integration
