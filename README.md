@@ -95,7 +95,55 @@ Actual Answer: 218ms (well under 200ms target)
 
 ## Architecture
 
-**Visual Diagrams:** See [`ARCHITECTURE_DIAGRAMS.md`](./ARCHITECTURE_DIAGRAMS.md) for detailed execution flow, sequence diagrams, and latency breakdowns with actual measured values.
+**Complete System Documentation:**
+- 📊 [`SYSTEM_ARCHITECTURE.md`](./SYSTEM_ARCHITECTURE.md) - Complete system architecture with detailed component diagrams
+- 📈 [`ARCHITECTURE_DIAGRAMS.md`](./ARCHITECTURE_DIAGRAMS.md) - Execution flow, sequence diagrams, and latency breakdowns
+
+### System Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    COZMO VOICE AGENT                             │
+│              Multi-Provider Three-Brain System                   │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────┐                                         ┌──────────┐
+│   User   │ ◄────► LiveKit (WebRTC) ◄────► Pipecat │   Web    │
+│ (Voice)  │         Real-time Audio         Pipeline│  Client  │
+└──────────┘                                         └──────────┘
+     │                                                     │
+     ▼                                                     ▼
+┌─────────────┐                                  ┌──────────────┐
+│ Sarvam STT  │ ──► Hindi Transcript            │  Sarvam TTS  │
+│   68ms avg  │                                  │   51ms avg   │
+└─────────────┘                                  └──────────────┘
+     │                                                     ▲
+     ▼                                                     │
+┌─────────────────────────────────────────────────────────────────┐
+│              THREE-BRAIN ORCHESTRATOR                            │
+│  ┌──────────┐   ┌──────────────┐   ┌────────────────┐          │
+│  │ L0: 0ms  │   │ L1: 116ms    │   │ L2: 438ms      │          │
+│  │ Reflex   │   │ Speculative  │   │ Deep (async)   │          │
+│  │ "haan"   │   │ Fast answer  │   │ Rich follow-up │          │
+│  └──────────┘   └──────────────┘   └────────────────┘          │
+│                        │                                         │
+│              ┌─────────▼──────────┐                             │
+│              │  Multi-Provider    │                             │
+│              │  Routing (Oracle)  │                             │
+│              └─────────┬──────────┘                             │
+│                        │                                         │
+│         ┌──────────────┼──────────────┐                         │
+│         ▼              ▼              ▼                         │
+│    ┌────────┐    ┌─────────┐    ┌─────────┐                   │
+│    │ Groq   │    │ OpenAI  │    │ Cached  │                   │
+│    │ 116ms  │    │ 172ms   │    │  <1ms   │                   │
+│    │Primary │    │Fallback │    │Emergency│                   │
+│    └────────┘    └─────────┘    └─────────┘                   │
+└─────────────────────────────────────────────────────────────────┘
+
+Measured: 162ms average end-to-end (Nov 25, 2025)
+Target: <200ms ✓ Achieved 3/3 turns
+```
 
 ### Three-Brain System
 
